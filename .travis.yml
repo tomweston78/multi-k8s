@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t tomweston78/react-test -f ./client/Dockerfile.dev ./client 
+
+script:
+  - docker run tomweston78/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t tomweston78/multi-client ./client
+  - docker build -t tomweston78/multi-nginx ./nginx
+  - docker build -t tomweston78/multi-server ./server 
+  - docker build -t tomweston78/multi-worker ./worker 
+# log in into docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# publish the images to dockerhub      
+  - docker push tomweston78/multi-client
+  - docker push tomweston78/multi-nginx
+  - docker push tomweston78/multi-server
+  - docker push tomweston78/multi-worker
